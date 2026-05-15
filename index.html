@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리팀 캘린더 📅</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2d3748;
+      margin-bottom: 24px;
+      font-size: 1.8rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .form-card h2 {
+      color: #4a5568;
+      margin-bottom: 16px;
+      font-size: 1.1rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .form-row.full { grid-template-columns: 1fr; }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover { opacity: 0.9; }
+
+    .calendar-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendar-header h2 { color: #2d3748; font-size: 1.2rem; }
+
+    .nav-btn {
+      background: #edf2f7;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .nav-btn:hover { background: #e2e8f0; }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-weight: bold;
+      color: #718096;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      min-height: 80px;
+      border-radius: 10px;
+      padding: 6px;
+      background: #f7fafc;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .day-cell:hover { background: #ebf4ff; }
+    .day-cell.today { background: #ebf8ff; border: 2px solid #63b3ed; }
+    .day-cell.empty { background: transparent; cursor: default; }
+
+    .day-number {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #4a5568;
+      margin-bottom: 4px;
+    }
+
+    .day-cell.sunday .day-number { color: #e53e3e; }
+    .day-cell.saturday .day-number { color: #3182ce; }
+
+    .event-tag {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag-연차 { background: #fed7d7; color: #c53030; }
+    .tag-반차 { background: #feebc8; color: #c05621; }
+    .tag-미팅 { background: #c6f6d5; color: #276749; }
+    .tag-출장 { background: #bee3f8; color: #2a69ac; }
+    .tag-기타 { background: #e9d8fd; color: #553c9a; }
+
+    .event-list { margin-top: 24px; }
+    .event-list h3 { color: #4a5568; margin-bottom: 12px; }
+
+    .event-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #f7fafc;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .event-info { flex: 1; }
+    .event-info .name { font-weight: bold; color: #2d3748; }
+    .event-info .date { font-size: 0.82rem; color: #718096; }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #fc8181;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal h3 { margin-bottom: 16px; color: #2d3748; }
+
+    .modal-event-item {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .modal-close {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      background: #edf2f7;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .day-cell { min-height: 55px; }
+      .event-tag { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📅 우리팀 캘린더</h1>
+
+  <div class="form-card">
+    <h2>✏️ 일정 등록</h2>
+    <div class="form-row">
+      <input type="text" id="inputName" placeholder="이름 (예: 홍길동)" />
+      <select id="inputType">
+        <option value="연차">🏖️ 연차</option>
+        <option value="반차">🌤️ 반차</option>
+        <option value="미팅">💼 미팅</option>
+        <option value="출장">✈️ 출장</option>
+        <option value="기타">📌 기타</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div>
+        <label style="font-size:0.82rem;color:#718096;">시작일</label>
+        <input type="date" id="inputStart" />
+      </div>
+      <div>
+        <label style="font-size:0.82rem;color:#718096;">종료일</label>
+        <input type="date" id="inputEnd" />
+      </div>
+    </div>
+    <div class="form-row full">
+      <input type="text" id="inputMemo" placeholder="메모 (선택)" />
+    </div>
+    <button class="btn-submit" onclick="addEvent()">📌 등록하기</button>
+  </div>
+
+  <div class="calendar-card">
+    <div class="calendar-header">
+      <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
+      <h2 id="monthTitle"></h2>
+      <button class="nav-btn" onclick="changeMonth(1)">▶</button>
+    </div>
+    <div class="weekdays">
+      <div style="color:#e53e3e">일</div>
+      <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div>
+      <div style="color:#3182ce">토</div>
+    </div>
+    <div class="days-grid" id="daysGrid"></div>
+
+    <div class="event-list">
+      <h3>📋 전체 일정</h3>
+      <div id="eventList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <div id="modalContent"></div>
+    <button class="modal-close" onclick="closeModal()">닫기</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
